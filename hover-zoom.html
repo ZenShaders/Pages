@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZenShaders Hover Zoom</title>
+<style>
+  html, body { margin:0; padding:0; background:#111; }
+
+  .column { display:flex; flex-wrap:wrap; gap:14px; padding:14px; }
+  .hover01 div { flex:1 1 220px; }
+
+  .hover01 figure {
+    margin:0; overflow:hidden; border-radius:10px;
+  }
+
+  .hover01 figure img {
+    width:100%; height:220px; object-fit:cover; display:block;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-transition: .3s ease-in-out;
+    transition: .3s ease-in-out;
+  }
+
+  .hover01 figure:hover img {
+    -webkit-transform: scale(1.3);
+    transform: scale(1.3);
+  }
+
+  .hover01 span {
+    display:block; text-align:center; color:#eee;
+    font-family:Arial, sans-serif; font-size:13px; margin-top:8px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="hover01 column">
+    <div>
+      <figure><img src="Floor_Panorama_01.png" alt=""></figure>
+      <span>Material 01</span>
+    </div>
+    <div>
+      <figure><img src="Floor_Panorama_02.png" alt=""></figure>
+      <span>Material 02</span>
+    </div>
+    <div>
+      <figure><img src="Floor_Panorama_03.png" alt=""></figure>
+      <span>Material 03</span>
+    </div>
+    <div>
+      <figure><img src="Floor_Panorama_04.png" alt=""></figure>
+      <span>Material 04</span>
+    </div>
+    <div>
+      <figure><img src="Floor_Panorama_05.png" alt=""></figure>
+      <span>Material 05</span>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZenShaders Gallery</title>
+<style>
+  html, body {
+    margin:0; padding:0;
+    background:transparent;
+    overflow:hidden;
+    width:100%; height:100%;
+  }
+
+  .gallery {
+    display:flex; flex-direction:column;
+    gap:8px; padding:8px;
+    width:100%; height:100%;
+    box-sizing:border-box;
+  }
+
+  .row { overflow:hidden; width:100%; flex:1; }
+
+  .track {
+    display:flex; width:max-content; height:100%;
+    animation: scrollLeft 260s linear infinite;
+    will-change: transform;
+  }
+
+  .row:nth-child(even) .track { animation-direction:reverse; }
+
+  .track img {
+    height:100%; width:auto;
+    border-radius:8px; flex-shrink:0;
+    object-fit:cover; display:block;
+    margin:0 5px;
+  }
+
+  @keyframes scrollLeft {
+    from { transform:translateX(0); }
+    to   { transform:translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+<div class="gallery" id="gallery"></div>
+<script>
+  const rows = [
+    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_', ext: 'png' },
+    { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_', ext: 'jpg' },
+    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_', ext: 'png' },
+    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_', ext: 'png' },
+  ];
+  const MAX = 200; // intenta hasta 200, oculta las que no existan
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function makeRow(base, prefix, ext, images) {
+    const row   = document.createElement('div');
+    row.className = 'row';
+    const track = document.createElement('div');
+    track.className = 'track';
+
+    const doubled = [...images, ...images];
+    doubled.forEach(n => {
+      const img = document.createElement('img');
+      img.src = base + prefix + n + '.' + ext;
+      img.alt = '';
+      img.onerror = function() { this.style.display = 'none'; this.style.margin = '0'; };
+      track.appendChild(img);
+    });
+
+    row.appendChild(track);
+    return row;
+  }
+
+  const gallery = document.getElementById('gallery');
+
+  rows.forEach(row => {
+    const nums = Array.from({length: MAX}, (_, i) => i + 1);
+    gallery.appendChild(makeRow(row.base, row.prefix, row.ext, shuffle([...nums])));
+  });
+</script>
+</body>
+</html>

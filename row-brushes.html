@@ -15,6 +15,7 @@
 <div class="row"><div class="track" id="track"></div></div>
 <script>
   const BASE = 'https://zenshaders.github.io/Pages/images/brushes/';
+  const MIN_IMAGES = 20; // minimo de imagenes para que el loop se vea bien
 
   async function loadManifest() {
     try { const r = await fetch(BASE + 'manifest.json'); return await r.json(); }
@@ -31,9 +32,15 @@
 
   async function init() {
     const track = document.getElementById('track');
-    const files = shuffle(await loadManifest());
-    const doubled = [...files, ...files];
-    doubled.forEach(f => {
+    let files = shuffle(await loadManifest());
+    if (!files.length) return;
+
+    // Repetir hasta tener suficientes imagenes para el loop
+    while (files.length < MIN_IMAGES) files = [...files, ...files];
+    files = shuffle(files);
+
+    // Duplicar para loop infinito
+    [...files, ...files].forEach(f => {
       const img = document.createElement('img');
       img.src = BASE + f;
       img.alt = '';
@@ -41,6 +48,7 @@
       img.onerror = function() { this.style.display='none'; this.style.margin='0'; };
       track.appendChild(img);
     });
+
     track.style.animationDuration = (files.length * 3) + 's';
   }
 

@@ -108,6 +108,10 @@
       track.appendChild(img.cloneNode());
     });
 
+    // Velocidad proporcional: 3s por imagen para que todas vayan igual de rápido visualmente
+    const duration = loaded.length * 3;
+    track.style.animationDuration = duration + 's';
+
     row.appendChild(track);
     return row;
   }

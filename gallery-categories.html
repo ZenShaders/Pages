@@ -45,12 +45,29 @@
 <div class="gallery" id="gallery"></div>
 <script>
   const rows = [
-    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_',   ext: 'png' },
-    { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_',  ext: 'jpg' },
-    { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_', ext: 'png' },
-    { base: 'https://zenshaders.github.io/Pages/images/decals/',    prefix: 'decal_', ext: 'jpg' },
+    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_'   },
+    { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_' },
+    { base: 'https://zenshaders.github.io/Pages/images/decals/',    prefix: 'decal_' },
+    { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_'  },
   ];
-  const MAX = 200; // intenta hasta 200, oculta las que no existan
+  const MAX = 200;
+
+  function tryLoad(base, prefix, n) {
+    return new Promise(resolve => {
+      const img = document.createElement('img');
+      img.onload  = () => resolve(img);
+      img.onerror = () => {
+        // intenta jpg si png falla, y viceversa
+        const other = document.createElement('img');
+        other.onload  = () => resolve(other);
+        other.onerror = () => resolve(null);
+        other.src = base + prefix + n + (img.src.endsWith('.png') ? '.jpg' : '.png');
+        other.alt = '';
+      };
+      img.src = base + prefix + n + '.png';
+      img.alt = '';
+    });
+  }
 
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -60,31 +77,46 @@
     return arr;
   }
 
-  function makeRow(base, prefix, ext, images) {
+  async function makeRow(base, prefix) {
     const row   = document.createElement('div');
     row.className = 'row';
     const track = document.createElement('div');
     track.className = 'track';
 
-    const doubled = [...images, ...images];
-    doubled.forEach(n => {
-      const img = document.createElement('img');
-      img.src = base + prefix + n + '.' + ext;
-      img.alt = '';
-      img.onerror = function() { this.style.display = 'none'; this.style.margin = '0'; };
-      track.appendChild(img);
+    const nums = shuffle(Array.from({length: MAX}, (_, i) => i + 1));
+    const loaded = [];
+
+    await Promise.all(nums.map(async n => {
+      const img = await tryLoad(base, prefix, n);
+      if (img) {
+        img.style.height = '100%';
+        img.style.width = 'auto';
+        img.style.borderRadius = '8px';
+        img.style.flexShrink = '0';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        img.style.margin = '0 5px';
+        loaded.push({ n, img });
+      }
+    }));
+
+    // duplicar para loop infinito
+    [...loaded, ...loaded].forEach(({ img }) => {
+      track.appendChild(img.cloneNode());
     });
 
     row.appendChild(track);
     return row;
   }
 
-  const gallery = document.getElementById('gallery');
+  async function init() {
+    const gallery = document.getElementById('gallery');
+    for (const row of rows) {
+      gallery.appendChild(await makeRow(row.base, row.prefix));
+    }
+  }
 
-  rows.forEach(row => {
-    const nums = Array.from({length: MAX}, (_, i) => i + 1);
-    gallery.appendChild(makeRow(row.base, row.prefix, row.ext, shuffle([...nums])));
-  });
+  init();
 </script>
 </body>
 </html>

@@ -48,14 +48,15 @@
 <body>
 <div class="gallery" id="gallery"></div>
 <script>
-  const rows = [
+  const categories = [
     { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_'   },
     { base: 'https://zenshaders.github.io/Pages/images/decals/',    prefix: 'decal_' },
     { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_' },
     { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_'  },
     { base: 'https://zenshaders.github.io/Pages/images/dynamic/',   prefix: 'dyn_'   },
   ];
-  const MAX = 200;
+  const ROWS = 4;
+  const MAX  = 200;
 
   function tryLoad(base, prefix, n) {
     return new Promise(resolve => {
@@ -81,52 +82,46 @@
     return arr;
   }
 
-  async function makeRow(base, prefix) {
-    const row   = document.createElement('div');
-    row.className = 'row';
-    const track = document.createElement('div');
-    track.className = 'track';
-
-    const nums = shuffle(Array.from({length: MAX}, (_, i) => i + 1));
-    const loaded = [];
-
-    await Promise.all(nums.map(async n => {
-      const img = await tryLoad(base, prefix, n);
-      if (img) {
-        img.style.height = '100%';
-        img.style.width = 'auto';
-        img.style.borderRadius = '8px';
-        img.style.flexShrink = '0';
-        img.style.objectFit = 'cover';
-        img.style.display = 'block';
-        img.style.margin = '0 5px';
-        loaded.push({ n, img });
-      }
-    }));
-
-    [...loaded, ...loaded].forEach(({ img }) => {
-      track.appendChild(img.cloneNode());
-    });
-
-    // Velocidad proporcional: 3s por imagen para que todas vayan igual de rápido visualmente
-    const duration = loaded.length * 3;
-    track.style.animationDuration = duration + 's';
-
-    row.appendChild(track);
-    return row;
-  }
-
   async function init() {
     const gallery = document.getElementById('gallery');
 
-    // Construir todas las filas antes de mostrar nada
-    const rowElements = await Promise.all(
-      rows.map(r => makeRow(r.base, r.prefix))
-    );
+    // Cargar todas las imágenes de todas las categorías
+    const allImages = [];
+    await Promise.all(categories.map(async cat => {
+      const nums = Array.from({length: MAX}, (_, i) => i + 1);
+      await Promise.all(nums.map(async n => {
+        const img = await tryLoad(cat.base, cat.prefix, n);
+        if (img) {
+          img.style.height = '100%';
+          img.style.width = 'auto';
+          img.style.borderRadius = '8px';
+          img.style.flexShrink = '0';
+          img.style.objectFit = 'cover';
+          img.style.display = 'block';
+          allImages.push(img);
+        }
+      }));
+    }));
 
-    rowElements.forEach(el => gallery.appendChild(el));
+    // 4 filas con orden aleatorio independiente de todas las categorías mezcladas
+    for (let i = 0; i < ROWS; i++) {
+      const shuffled = shuffle([...allImages]);
+      const row   = document.createElement('div');
+      row.className = 'row';
+      const track = document.createElement('div');
+      track.className = 'track';
 
-    // Mostrar todo de golpe con fade suave
+      [...shuffled, ...shuffled].forEach(img => {
+        const clone = img.cloneNode();
+        clone.style.margin = '0 5px';
+        track.appendChild(clone);
+      });
+
+      track.style.animationDuration = (shuffled.length * 3) + 's';
+      row.appendChild(track);
+      gallery.appendChild(row);
+    }
+
     gallery.classList.add('ready');
   }
 

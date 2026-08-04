@@ -16,7 +16,11 @@
     gap:8px; padding:8px;
     width:100%; height:100%;
     box-sizing:border-box;
+    opacity:0;
+    transition:opacity 0.3s ease;
   }
+
+  .gallery.ready { opacity:1; }
 
   .row { overflow:hidden; width:100%; flex:1; }
 
@@ -46,9 +50,10 @@
 <script>
   const rows = [
     { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_'   },
-    { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_' },
     { base: 'https://zenshaders.github.io/Pages/images/decals/',    prefix: 'decal_' },
+    { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_' },
     { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_'  },
+    { base: 'https://zenshaders.github.io/Pages/images/dynamic/',   prefix: 'dyn_'   },
   ];
   const MAX = 200;
 
@@ -57,7 +62,6 @@
       const img = document.createElement('img');
       img.onload  = () => resolve(img);
       img.onerror = () => {
-        // intenta jpg si png falla, y viceversa
         const other = document.createElement('img');
         other.onload  = () => resolve(other);
         other.onerror = () => resolve(null);
@@ -100,7 +104,6 @@
       }
     }));
 
-    // duplicar para loop infinito
     [...loaded, ...loaded].forEach(({ img }) => {
       track.appendChild(img.cloneNode());
     });
@@ -111,9 +114,16 @@
 
   async function init() {
     const gallery = document.getElementById('gallery');
-    for (const row of rows) {
-      gallery.appendChild(await makeRow(row.base, row.prefix));
-    }
+
+    // Construir todas las filas antes de mostrar nada
+    const rowElements = await Promise.all(
+      rows.map(r => makeRow(r.base, r.prefix))
+    );
+
+    rowElements.forEach(el => gallery.appendChild(el));
+
+    // Mostrar todo de golpe con fade suave
+    gallery.classList.add('ready');
   }
 
   init();

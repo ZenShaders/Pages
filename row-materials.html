@@ -2,92 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ZenShaders - Materials Row</title>
+<title>ZenShaders Row</title>
 <style>
-  html, body {
-    margin:0; padding:0;
-    background:#f0f0f0;
-    overflow:hidden;
-    width:100%; height:100%;
-  }
-
-  .row {
-    overflow:hidden;
-    width:100%; height:100%;
-  }
-
-  .track {
-    display:flex;
-    width:max-content;
-    height:100%;
-    animation: scrollLeft 180s linear infinite;
-    will-change: transform;
-  }
-
-  .track img {
-    height:100%; width:auto;
-    border-radius:8px; flex-shrink:0;
-    object-fit:cover; display:block;
-    margin:0 5px;
-  }
-
-  @keyframes scrollLeft {
-    from { transform:translateX(0); }
-    to   { transform:translateX(-50%); }
-  }
+  html, body { margin:0; padding:0; background:#f0f0f0; overflow:hidden; width:100%; height:100%; }
+  .row { overflow:hidden; width:100%; height:100%; }
+  .track { display:flex; width:max-content; height:100%; animation: scrollLeft 180s linear infinite; will-change:transform; }
+  .track img { height:100%; width:auto; border-radius:8px; flex-shrink:0; object-fit:cover; display:block; margin:0 5px; }
+  @keyframes scrollLeft { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 </style>
 </head>
 <body>
-<div class="row">
-  <div class="track" id="track"></div>
-</div>
+<div class="row"><div class="track" id="track"></div></div>
 <script>
-  const BASE   = 'https://zenshaders.github.io/Pages/images/materials/';
-  const PREFIX = 'mat_';
-  const MAX    = 200;
+  const BASE = 'https://zenshaders.github.io/Pages/images/materials/';
+
+  async function loadManifest() {
+    try { const r = await fetch(BASE + 'manifest.json'); return await r.json(); }
+    catch { return []; }
+  }
 
   function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+    for (let i=arr.length-1; i>0; i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
     }
     return arr;
   }
 
-  function tryLoad(n) {
-    return new Promise(resolve => {
-      const img = document.createElement('img');
-      img.onload  = () => resolve(img);
-      img.onerror = () => {
-        const other = document.createElement('img');
-        other.onload  = () => resolve(other);
-        other.onerror = () => resolve(null);
-        other.src = BASE + PREFIX + n + (img.src.endsWith('.png') ? '.jpg' : '.png');
-        other.alt = '';
-      };
-      img.src = BASE + PREFIX + n + '.png';
-      img.alt = '';
-    });
-  }
-
   async function init() {
     const track = document.getElementById('track');
-    const nums  = shuffle(Array.from({length: MAX}, (_, i) => i + 1));
-    const loaded = [];
-
-    await Promise.all(nums.map(async n => {
-      const img = await tryLoad(n);
-      if (img) loaded.push(img);
-    }));
-
-    [...loaded, ...loaded].forEach(img => {
-      const clone = img.cloneNode();
-      clone.style.margin = '0 5px';
-      track.appendChild(clone);
+    const files = shuffle(await loadManifest());
+    const doubled = [...files, ...files];
+    doubled.forEach(f => {
+      const img = document.createElement('img');
+      img.src = BASE + f;
+      img.alt = '';
+      img.style.margin = '0 5px';
+      img.onerror = function() { this.style.display='none'; this.style.margin='0'; };
+      track.appendChild(img);
     });
-
-    // Velocidad proporcional al número de imágenes
-    track.style.animationDuration = (loaded.length * 3) + 's';
+    track.style.animationDuration = (files.length * 3) + 's';
   }
 
   init();

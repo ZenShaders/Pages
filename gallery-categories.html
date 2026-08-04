@@ -4,121 +4,73 @@
 <meta charset="UTF-8">
 <title>ZenShaders Gallery</title>
 <style>
-  html, body {
-    margin:0; padding:0;
-    background:#f0f0f0;
-    overflow:hidden;
-    width:100%; height:100%;
-  }
-
-  .gallery {
-    display:flex; flex-direction:column;
-    gap:8px; padding:8px;
-    width:100%; height:100%;
-    box-sizing:border-box;
-    opacity:0;
-    transition:opacity 0.3s ease;
-  }
-
+  html, body { margin:0; padding:0; background:#d9d9d9; overflow:hidden; width:100%; height:100%; }
+  .gallery { display:flex; flex-direction:column; gap:8px; padding:8px; width:100%; height:100%; box-sizing:border-box; opacity:0; transition:opacity 0.3s ease; }
   .gallery.ready { opacity:1; }
-
   .row { overflow:hidden; width:100%; flex:1; }
-
-  .track {
-    display:flex; width:max-content; height:100%;
-    animation: scrollLeft 260s linear infinite;
-    will-change: transform;
-  }
-
+  .track { display:flex; width:max-content; height:100%; animation: scrollLeft 260s linear infinite; will-change:transform; }
   .row:nth-child(even) .track { animation-direction:reverse; }
-
-  .track img {
-    height:100%; width:auto;
-    border-radius:8px; flex-shrink:0;
-    object-fit:cover; display:block;
-    margin:0 5px;
-  }
-
-  @keyframes scrollLeft {
-    from { transform:translateX(0); }
-    to   { transform:translateX(-50%); }
-  }
+  .track img { height:100%; width:auto; border-radius:8px; flex-shrink:0; object-fit:cover; display:block; margin:0 5px; }
+  @keyframes scrollLeft { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 </style>
 </head>
 <body>
 <div class="gallery" id="gallery"></div>
 <script>
   const categories = [
-    { base: 'https://zenshaders.github.io/Pages/images/materials/', prefix: 'mat_'   },
-    { base: 'https://zenshaders.github.io/Pages/images/decals/',    prefix: 'decal_' },
-    { base: 'https://zenshaders.github.io/Pages/images/brushes/',   prefix: 'brush_' },
-    { base: 'https://zenshaders.github.io/Pages/images/textures/',  prefix: 'text_'  },
-    { base: 'https://zenshaders.github.io/Pages/images/dynamic_textures/', prefix: 'dtext_' },
-    { base: 'https://zenshaders.github.io/Pages/images/dynamic_decals/', prefix: 'ddecal_' },
+    { base: 'https://zenshaders.github.io/Pages/images/materials/' },
+    { base: 'https://zenshaders.github.io/Pages/images/decals/' },
+    { base: 'https://zenshaders.github.io/Pages/images/brushes/' },
+    { base: 'https://zenshaders.github.io/Pages/images/textures/' },
+    { base: 'https://zenshaders.github.io/Pages/images/dynamic_textures/' },
+    { base: 'https://zenshaders.github.io/Pages/images/dynamic_decals/' },
   ];
   const ROWS = 4;
-  const MAX  = 200;
-
-  function tryLoad(base, prefix, n) {
-    return new Promise(resolve => {
-      const img = document.createElement('img');
-      img.onload  = () => resolve(img);
-      img.onerror = () => {
-        const other = document.createElement('img');
-        other.onload  = () => resolve(other);
-        other.onerror = () => resolve(null);
-        other.src = base + prefix + n + (img.src.endsWith('.png') ? '.jpg' : '.png');
-        other.alt = '';
-      };
-      img.src = base + prefix + n + '.png';
-      img.alt = '';
-    });
-  }
 
   function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+    for (let i = arr.length-1; i>0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
     }
     return arr;
+  }
+
+  async function loadManifest(base) {
+    try {
+      const r = await fetch(base + 'manifest.json');
+      return await r.json();
+    } catch { return []; }
+  }
+
+  function makeImg(src) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    img.style.margin = '0 5px';
+    img.onerror = function() { this.style.display='none'; this.style.margin='0'; };
+    return img;
   }
 
   async function init() {
     const gallery = document.getElementById('gallery');
 
-    // Cargar todas las imágenes de todas las categorías
-    const allImages = [];
+    // Cargar todos los manifests y construir lista completa de URLs
+    const allUrls = [];
     await Promise.all(categories.map(async cat => {
-      const nums = Array.from({length: MAX}, (_, i) => i + 1);
-      await Promise.all(nums.map(async n => {
-        const img = await tryLoad(cat.base, cat.prefix, n);
-        if (img) {
-          img.style.height = '100%';
-          img.style.width = 'auto';
-          img.style.borderRadius = '8px';
-          img.style.flexShrink = '0';
-          img.style.objectFit = 'cover';
-          img.style.display = 'block';
-          allImages.push(img);
-        }
-      }));
+      const files = await loadManifest(cat.base);
+      files.forEach(f => allUrls.push(cat.base + f));
     }));
 
-    // 4 filas con orden aleatorio independiente de todas las categorías mezcladas
+    // Crear 4 filas con orden aleatorio independiente
     for (let i = 0; i < ROWS; i++) {
-      const shuffled = shuffle([...allImages]);
-      const row   = document.createElement('div');
+      const shuffled = shuffle([...allUrls]);
+      const row = document.createElement('div');
       row.className = 'row';
       const track = document.createElement('div');
       track.className = 'track';
-
-      [...shuffled, ...shuffled].forEach(img => {
-        const clone = img.cloneNode();
-        clone.style.margin = '0 5px';
-        track.appendChild(clone);
-      });
-
       track.style.animationDuration = (shuffled.length * 3) + 's';
+
+      [...shuffled, ...shuffled].forEach(url => track.appendChild(makeImg(url)));
       row.appendChild(track);
       gallery.appendChild(row);
     }

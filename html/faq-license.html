@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZenShaders FAQ & License</title>
+<style>
+  html, body {
+    margin:0; padding:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: transparent;
+    color: #1a1a1a;
+  }
+
+  .accordion {
+    border: 1px solid rgba(204,204,204,1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .accordion input[type="checkbox"] {
+    display: none;
+  }
+
+  .accordion label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    background: #fafafa;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .accordion label .icon {
+    font-size: 20px;
+    font-weight: 300;
+    color: #888;
+    transition: transform 0.2s ease;
+    line-height: 1;
+  }
+
+  .accordion input:checked + label .icon {
+    transform: rotate(45deg);
+  }
+
+  .accordion .content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-top: 0px solid rgba(220,220,220,1);
+  }
+
+  .accordion input:checked ~ .content {
+    max-height: 2000px;
+    border-top: 1px solid rgba(220,220,220,1);
+  }
+
+  .content-inner {
+    padding: 20px 18px;
+  }
+
+  .q { font-size:14px; font-weight:700; color:#1a1a1a; margin:0 0 6px; }
+  .a { font-size:14px; color:#2d2d2d; line-height:22px; margin:0 0 20px; }
+  .divider { border:none; border-top:1px solid rgba(220,220,220,1); margin:0 0 20px; }
+
+  .license-subtitle { font-size:12px; font-weight:500; color:#2d2d2d; margin:0 0 16px; letter-spacing:0.06em; text-transform:uppercase; }
+  .license-intro { font-size:14px; color:#2d2d2d; line-height:22px; margin:0 0 20px; }
+  .section-label { font-size:13px; font-weight:700; color:#1a1a1a; margin:0 0 10px; }
+  .bullet { font-size:14px; color:#2d2d2d; line-height:22px; margin:0 0 4px; }
+  .bullet:last-child { margin-bottom:0; }
+  .spacer { margin-bottom:20px; }
+</style>
+</head>
+<body>
+
+  <!-- FAQ -->
+  <div class="accordion">
+    <input type="checkbox" id="faq">
+    <label for="faq">
+      FAQ
+      <span class="icon">+</span>
+    </label>
+    <div class="content">
+      <div class="content-inner">
+
+        <p class="q">Are these assets AI-generated?</p>
+        <p class="a">No. Every single asset in ZenShaders Library, including materials, textures, decals, sculpt brushes and generators, is created manually and procedurally in Substance Designer. No AI image generation tools are used at any stage of production. Everything you see is hand-built node by node.</p>
+
+        <hr class="divider">
+
+        <p class="q">Can I use ZenShaders assets to train AI models?</p>
+        <p class="a">No. The license explicitly prohibits using these assets to train, fine-tune or generate images with any AI or machine learning model. This applies to all formats included in the library.</p>
+
+        <hr class="divider">
+
+        <p class="q">Can I use these assets in commercial projects?</p>
+        <p class="a">Yes. The royalty-free license covers both personal and commercial use with no additional fees.</p>
+
+        <hr class="divider">
+
+        <p class="q">Do I need to credit ZenShaders?</p>
+        <p class="a" style="margin-bottom:0;">No credit is required, though it is always appreciated.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LICENSE -->
+  <div class="accordion">
+    <input type="checkbox" id="license">
+    <label for="license">
+      License
+      <span class="icon">+</span>
+    </label>
+    <div class="content">
+      <div class="content-inner">
+
+        <p class="license-subtitle">Royalty-Free Personal &amp; Commercial License</p>
+        <p class="license-intro">You are free to use these assets in personal and commercial projects including games, films, illustrations, product renders and client work, without paying royalties or crediting ZenShaders.</p>
+
+        <p class="section-label">You may:</p>
+        <p class="bullet">• Use the assets in unlimited personal and commercial projects</p>
+        <p class="bullet">• Modify, adapt and combine the assets for your projects</p>
+        <p class="bullet spacer">• Use the assets in work delivered to clients</p>
+
+        <p class="section-label">You may not:</p>
+        <p class="bullet">• Redistribute, resell or share the original asset files</p>
+        <p class="bullet">• Include the assets in any product or pack for resale</p>
+        <p class="bullet">• Use the assets to train, fine-tune or generate images with any AI or machine learning model, image generator, or similar technology. This includes but is not limited to Stable Diffusion, Midjourney, DALL·E, LoRA training, or any other generative AI system</p>
+        <p class="bullet">• Claim authorship of the original assets</p>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

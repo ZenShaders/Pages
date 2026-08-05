@@ -63,16 +63,19 @@
       files.forEach(f => allUrls.push(cat.base + f));
     }));
 
-    // Crear 4 filas con orden aleatorio independiente
+    // Barajar el pool completo y dividir en 4 grupos sin solapamiento
+    const shuffledAll = shuffle([...allUrls]);
+    const chunkSize = Math.ceil(shuffledAll.length / ROWS);
+
     for (let i = 0; i < ROWS; i++) {
-      const shuffled = shuffle([...allUrls]);
+      const chunk = shuffledAll.slice(i * chunkSize, (i + 1) * chunkSize);
       const row = document.createElement('div');
       row.className = 'row';
       const track = document.createElement('div');
       track.className = 'track';
-      track.style.animationDuration = (shuffled.length * 3) + 's';
+      track.style.animationDuration = (chunk.length * 3) + 's';
 
-      [...shuffled, ...shuffled].forEach(url => track.appendChild(makeImg(url)));
+      [...chunk, ...chunk].forEach(url => track.appendChild(makeImg(url)));
       row.appendChild(track);
       gallery.appendChild(row);
     }

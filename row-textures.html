@@ -68,7 +68,7 @@
       const img = document.createElement('img');
       img.src = BASE + f;
       img.alt = '';
-      img.style.margin = '0 5px';
+      img.style.margin = '0 5px'; img.style.background = '#121212'; img.style.borderRadius = '8px';
       img.onerror = function() { this.style.display='none'; this.style.margin='0'; };
       track.appendChild(img);
     });

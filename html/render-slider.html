@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZenShaders - Render Slider</title>
+<style>
+  html, body { margin:0; padding:0; background:#000; overflow:hidden; width:100%; height:100%; }
+  .slider { position:relative; width:100%; height:100%; }
+  .slide { position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; transition:opacity 1.5s ease-in-out; }
+  .slide img { width:100%; height:100%; object-fit:cover; display:block; }
+  .slide.active { opacity:1; }
+</style>
+</head>
+<body>
+<div class="slider" id="slider"></div>
+<script>
+  const BASE  = 'https://zenshaders.github.io/Pages/images/fade_slider/';
+  const DELAY = 2500;
+  let current = 0;
+
+  async function loadManifest() {
+    try { const r = await fetch(BASE + 'manifest.json'); return await r.json(); }
+    catch { return []; }
+  }
+
+  function shuffle(arr) {
+    for (let i=arr.length-1; i>0; i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  async function init() {
+    const slider = document.getElementById('slider');
+    const files  = shuffle(await loadManifest());
+    const slides = [];
+
+    files.forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'slide';
+      const img = document.createElement('img');
+      img.src = BASE + f;
+      img.alt = '';
+      div.appendChild(img);
+      slider.appendChild(div);
+      slides.push(div);
+    });
+
+    if (!slides.length) return;
+    slides[0].classList.add('active');
+
+    setInterval(() => {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, DELAY);
+  }
+
+  init();
+</script>
+</body>
+</html>

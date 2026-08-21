@@ -74,6 +74,17 @@
   .bullet:last-child { margin-bottom:0; }
   .spacer { margin-bottom:20px; }
 </style>
+<script>
+  function sendHeight() {
+    const h = document.body.scrollHeight;
+    window.parent.postMessage({ faqHeight: h }, '*');
+  }
+  window.addEventListener('load', sendHeight);
+  document.addEventListener('change', sendHeight);
+  // Observar cambios de tamaño
+  const observer = new MutationObserver(sendHeight);
+  observer.observe(document.body, { subtree: true, childList: true, attributes: true });
+</script>
 </head>
 <body>
 
@@ -104,6 +115,11 @@
 
         <p class="q">Do I need to credit ZenShaders?</p>
         <p class="a" style="margin-bottom:0;">No credit is required, though it is always appreciated.</p>
+
+        <hr class="divider">
+
+        <p class="q">My download contains multiple .zip files. How do I install them?</p>
+        <p class="a" style="margin-bottom:0;">Some categories are split into several parts due to their size. Download all parts into the same folder without renaming them, then extract only the first file using 7-Zip. For a full step-by-step guide visit our <a href="https://zenshaders.gitbook.io/zenshaders-docs/" style="color:#1a1a1a; font-weight:700;">documentation</a>.</p>
 
       </div>
     </div>

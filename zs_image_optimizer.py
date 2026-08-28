@@ -72,6 +72,10 @@ class ImageOptimizer(tk.Tk):
         self.format_var = tk.StringVar(value="PNG")
         self.width_var = tk.StringVar(value="512")
         self.height_var = tk.StringVar(value="512")
+        self.fit_mode_var = tk.StringVar(value="Fill (recorta, sin bordes)")
+        self.quality_var = tk.StringVar(value="90")
+        self.format_var = tk.StringVar(value="PNG")
+        self.keep_alpha_var = tk.BooleanVar(value=True)
         self.quality_var = tk.StringVar(value="85")
         self.alpha_var = tk.BooleanVar(value=True)
         self.overwrite_var = tk.BooleanVar(value=False)
@@ -168,17 +172,34 @@ class ImageOptimizer(tk.Tk):
         tk.Label(params, text="(1-100)", bg="#1a1a1a", fg="#888888",
                  font=("Arial", 9)).grid(row=1, column=3, sticky="w")
 
+        # Modo de encaje (Fit/Fill) — resuelve imágenes con resoluciones distintas
+        tk.Label(params, text="Encaje al recuadro:", bg="#1a1a1a", fg="#e0e0e0",
+                 font=("Arial", 10)).grid(row=2, column=0, columnspan=2, sticky="w", pady=(10,4))
+        fit_menu = ttk.Combobox(params, textvariable=self.fit_mode_var,
+                                values=["Fill (recorta, sin bordes)",
+                                        "Fit (contiene, con bordes)",
+                                        "Fit + fondo blanco",
+                                        "Estirar (deforma)"],
+                                state="readonly", font=("Arial", 10), width=26)
+        fit_menu.grid(row=2, column=2, columnspan=4, sticky="w", padx=(0,0), pady=(10,4))
+
+        fit_desc = tk.Label(params,
+            text="Fill: llena el recuadro entero, recorta el sobrante desde el centro (recomendado).\n"
+                 "Fit: la imagen entera cabe dentro, puede dejar huecos transparentes/blancos.",
+            font=("Arial", 8), bg="#1a1a1a", fg="#777777", justify="left")
+        fit_desc.grid(row=3, column=0, columnspan=7, sticky="w", pady=(0,4))
+
         # Alpha
         tk.Checkbutton(params, text="Mantener canal alpha (transparencia)",
                        variable=self.alpha_var, bg="#1a1a1a", fg="#e0e0e0",
                        selectcolor="#2d2d2d", activebackground="#1a1a1a",
-                       font=("Arial", 10)).grid(row=2, column=0, columnspan=5, sticky="w", pady=4)
+                       font=("Arial", 10)).grid(row=4, column=0, columnspan=5, sticky="w", pady=4)
 
         # Sobreescribir
         tk.Checkbutton(params, text="Sobreescribir archivos existentes",
                        variable=self.overwrite_var, bg="#1a1a1a", fg="#e0e0e0",
                        selectcolor="#2d2d2d", activebackground="#1a1a1a",
-                       font=("Arial", 10)).grid(row=3, column=0, columnspan=5, sticky="w", pady=4)
+                       font=("Arial", 10)).grid(row=5, column=0, columnspan=5, sticky="w", pady=4)
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=20, pady=10)
 
@@ -239,6 +260,7 @@ class ImageOptimizer(tk.Tk):
         quality = int(self.quality_var.get())
         keep_alpha = self.alpha_var.get()
         overwrite = self.overwrite_var.get()
+        fit_mode = self.fit_mode_var.get()
 
         ext_map = {"PNG": ".png", "JPEG": ".jpg", "WEBP": ".webp"}
         out_ext = ext_map[fmt]
@@ -266,9 +288,7 @@ class ImageOptimizer(tk.Tk):
 
             try:
                 img = Image.open(os.path.join(src, fname))
-
-                # Redimensionar manteniendo proporciones con relleno si es necesario
-                img = img.resize((w, h), Image.LANCZOS)
+                img = self._smart_resize(img, w, h, fit_mode)
 
                 # Gestión de alpha
                 if fmt == "JPEG":
@@ -300,6 +320,45 @@ class ImageOptimizer(tk.Tk):
 
         self._log(f"\n✅ {ok} convertidas, {skip} omitidas.")
         self.btn.config(state="normal", text="▶  Convertir imágenes")
+
+    def _smart_resize(self, img, target_w, target_h, mode):
+        """
+        Redimensiona una imagen a (target_w, target_h) según el modo elegido,
+        sin distorsionar proporciones salvo que el usuario pida 'Estirar'.
+        """
+        img = img.convert("RGBA") if img.mode in ("RGBA", "LA", "P") else img.convert("RGB")
+        src_w, src_h = img.size
+
+        if mode.startswith("Estirar"):
+            return img.resize((target_w, target_h), Image.LANCZOS)
+
+        # Ratio para que la imagen quepa (Fit) o llene (Fill) el recuadro
+        ratio_fill = max(target_w / src_w, target_h / src_h)
+        ratio_fit = min(target_w / src_w, target_h / src_h)
+        ratio = ratio_fill if mode.startswith("Fill") else ratio_fit
+
+        new_w = max(1, round(src_w * ratio))
+        new_h = max(1, round(src_h * ratio))
+        resized = img.resize((new_w, new_h), Image.LANCZOS)
+
+        if mode.startswith("Fill"):
+            # Recorta el sobrante desde el centro para llenar el recuadro exacto
+            left = (new_w - target_w) // 2
+            top = (new_h - target_h) // 2
+            return resized.crop((left, top, left + target_w, top + target_h))
+        else:
+            # Fit: centra la imagen completa dentro del recuadro, dejando bordes
+            if mode.endswith("fondo blanco"):
+                canvas = Image.new("RGB", (target_w, target_h), (255, 255, 255))
+                if resized.mode == "RGBA":
+                    canvas.paste(resized, ((target_w-new_w)//2, (target_h-new_h)//2), resized)
+                else:
+                    canvas.paste(resized, ((target_w-new_w)//2, (target_h-new_h)//2))
+            else:
+                canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+                canvas.paste(resized, ((target_w-new_w)//2, (target_h-new_h)//2),
+                            resized if resized.mode == "RGBA" else None)
+            return canvas
 
 if __name__ == "__main__":
     app = ImageOptimizer()

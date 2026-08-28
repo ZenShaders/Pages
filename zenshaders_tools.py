@@ -336,34 +336,9 @@ class GifMakerTab(tk.Frame):
         src_menu.pack(anchor="w", padx=20, pady=2)
         src_menu.bind("<<ComboboxSelected>>", self._on_source_change)
 
-        # --- Fila carpeta imágenes ---
-        self.folder_label = make_label(self, "Carpeta con las imágenes", bold=True)
-        self.folder_label.pack(anchor="w", **pad)
-        self.f1 = tk.Frame(self, bg=DARK_BG); self.f1.pack(fill="x", padx=20, pady=2)
-        make_entry(self.f1, self.input_folder, width=42).pack(side="left", ipady=4)
-        make_button(self.f1, "Buscar", self._pick_input_folder).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
-
-        # --- Fila archivo de vídeo ---
-        self.video_label = make_label(self, "Archivo de vídeo", bold=True)
-        self.v1 = tk.Frame(self, bg=DARK_BG)
-        make_entry(self.v1, self.input_video, width=42).pack(side="left", ipady=4)
-        make_button(self.v1, "Buscar", self._pick_input_video).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
-
-        # --- Parámetros de vídeo (solo visibles en modo vídeo) ---
-        self.video_params = tk.Frame(self, bg=DARK_BG)
-        tk.Label(self.video_params, text="FPS a extraer:", bg=DARK_BG, fg=FG,
-                font=("Arial", 10)).grid(row=0, column=0, sticky="w", pady=4)
-        make_entry(self.video_params, self.video_fps_var, width=6).grid(row=0, column=1, sticky="w", padx=(8,20))
-        tk.Label(self.video_params, text="(fotogramas por segundo a capturar del vídeo)",
-                bg=DARK_BG, fg="#777777", font=("Arial", 8)).grid(row=0, column=2, sticky="w")
-
-        tk.Label(self.video_params, text="Inicio (seg):", bg=DARK_BG, fg=FG,
-                font=("Arial", 10)).grid(row=1, column=0, sticky="w", pady=4)
-        make_entry(self.video_params, self.video_start_var, width=6).grid(row=1, column=1, sticky="w", padx=(8,20))
-
-        tk.Label(self.video_params, text="Fin (seg, vacío = hasta el final):", bg=DARK_BG, fg=FG,
-                font=("Arial", 10)).grid(row=2, column=0, sticky="w", pady=4)
-        make_entry(self.video_params, self.video_end_var, width=6).grid(row=2, column=1, sticky="w", padx=(8,20))
+        # Contenedor único donde se dibuja SOLO la sección activa (imágenes o vídeo)
+        self.source_container = tk.Frame(self, bg=DARK_BG)
+        self.source_container.pack(fill="x")
 
         make_label(self, "Guardar GIF como", bold=True).pack(anchor="w", **pad)
         f2 = tk.Frame(self, bg=DARK_BG); f2.pack(fill="x", padx=20, pady=2)
@@ -403,20 +378,48 @@ class GifMakerTab(tk.Frame):
                              relief="flat", cursor="hand2", activebackground="#3d7a3d")
         self.btn.pack(pady=(0, 20), ipadx=20, ipady=8)
 
+    def _build_folder_source(self, parent):
+        pad = {"padx": 20, "pady": 6}
+        make_label(parent, "Carpeta con las imágenes", bold=True).pack(anchor="w", **pad)
+        f1 = tk.Frame(parent, bg=DARK_BG); f1.pack(fill="x", padx=20, pady=2)
+        make_entry(f1, self.input_folder, width=42).pack(side="left", ipady=4)
+        make_button(f1, "Buscar", self._pick_input_folder).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
+
+    def _build_video_source(self, parent):
+        pad = {"padx": 20, "pady": 6}
+        make_label(parent, "Archivo de vídeo", bold=True).pack(anchor="w", **pad)
+        v1 = tk.Frame(parent, bg=DARK_BG); v1.pack(fill="x", padx=20, pady=2)
+        make_entry(v1, self.input_video, width=42).pack(side="left", ipady=4)
+        make_button(v1, "Buscar", self._pick_input_video).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
+
+        video_params = tk.Frame(parent, bg=DARK_BG)
+        video_params.pack(fill="x", padx=20, pady=(8,4))
+
+        tk.Label(video_params, text="FPS a extraer:", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=0, column=0, sticky="w", pady=4)
+        make_entry(video_params, self.video_fps_var, width=6).grid(row=0, column=1, sticky="w", padx=(8,20))
+        tk.Label(video_params, text="(fotogramas por segundo a capturar del vídeo)",
+                bg=DARK_BG, fg="#777777", font=("Arial", 8)).grid(row=0, column=2, sticky="w")
+
+        tk.Label(video_params, text="Inicio (seg):", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=1, column=0, sticky="w", pady=4)
+        make_entry(video_params, self.video_start_var, width=6).grid(row=1, column=1, sticky="w", padx=(8,20))
+
+        tk.Label(video_params, text="Fin (seg, vacío = hasta el final):", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=2, column=0, sticky="w", pady=4)
+        make_entry(video_params, self.video_end_var, width=6).grid(row=2, column=1, sticky="w", padx=(8,20))
+
+
+
     def _on_source_change(self, *_):
-        is_video = self.source_mode.get() == "Archivo de vídeo"
-        if is_video:
-            self.folder_label.pack_forget()
-            self.f1.pack_forget()
-            self.video_label.pack(anchor="w", padx=20, pady=6)
-            self.v1.pack(fill="x", padx=20, pady=2)
-            self.video_params.pack(fill="x", padx=20, pady=(8,4))
+        # Vaciar el contenedor y reconstruir solo la sección activa
+        for widget in self.source_container.winfo_children():
+            widget.destroy()
+
+        if self.source_mode.get() == "Archivo de vídeo":
+            self._build_video_source(self.source_container)
         else:
-            self.video_label.pack_forget()
-            self.v1.pack_forget()
-            self.video_params.pack_forget()
-            self.folder_label.pack(anchor="w", padx=20, pady=6)
-            self.f1.pack(fill="x", padx=20, pady=2)
+            self._build_folder_source(self.source_container)
 
     def _pick_input_folder(self):
         folder = filedialog.askdirectory(title="Selecciona carpeta con las imágenes")

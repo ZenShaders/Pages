@@ -310,23 +310,60 @@ class GifMakerTab(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent, bg=DARK_BG)
 
+        self.source_mode = tk.StringVar(value="Carpeta de imágenes")
         self.input_folder = tk.StringVar()
+        self.input_video = tk.StringVar()
         self.output_path = tk.StringVar()
         self.width_var = tk.StringVar(value="500")
         self.delay_var = tk.StringVar(value="120")
         self.loop_var = tk.BooleanVar(value=True)
         self.bounce_var = tk.BooleanVar(value=False)
         self.max_colors_var = tk.StringVar(value="256")
+        self.video_fps_var = tk.StringVar(value="10")
+        self.video_start_var = tk.StringVar(value="0")
+        self.video_end_var = tk.StringVar(value="")
 
         self._build_ui()
+        self._on_source_change()
 
     def _build_ui(self):
         pad = {"padx": 20, "pady": 6}
 
-        make_label(self, "Carpeta con las imágenes", bold=True).pack(anchor="w", **pad)
-        f1 = tk.Frame(self, bg=DARK_BG); f1.pack(fill="x", padx=20, pady=2)
-        make_entry(f1, self.input_folder, width=42).pack(side="left", ipady=4)
-        make_button(f1, "Buscar", self._pick_input).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
+        make_label(self, "Origen de los frames", bold=True).pack(anchor="w", **pad)
+        src_menu = ttk.Combobox(self, textvariable=self.source_mode,
+                                values=["Carpeta de imágenes", "Archivo de vídeo"],
+                                state="readonly", font=("Arial", 10), width=30)
+        src_menu.pack(anchor="w", padx=20, pady=2)
+        src_menu.bind("<<ComboboxSelected>>", self._on_source_change)
+
+        # --- Fila carpeta imágenes ---
+        self.folder_label = make_label(self, "Carpeta con las imágenes", bold=True)
+        self.folder_label.pack(anchor="w", **pad)
+        self.f1 = tk.Frame(self, bg=DARK_BG); self.f1.pack(fill="x", padx=20, pady=2)
+        make_entry(self.f1, self.input_folder, width=42).pack(side="left", ipady=4)
+        make_button(self.f1, "Buscar", self._pick_input_folder).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
+
+        # --- Fila archivo de vídeo ---
+        self.video_label = make_label(self, "Archivo de vídeo", bold=True)
+        self.v1 = tk.Frame(self, bg=DARK_BG)
+        make_entry(self.v1, self.input_video, width=42).pack(side="left", ipady=4)
+        make_button(self.v1, "Buscar", self._pick_input_video).pack(side="left", padx=(8,0), ipady=4, ipadx=6)
+
+        # --- Parámetros de vídeo (solo visibles en modo vídeo) ---
+        self.video_params = tk.Frame(self, bg=DARK_BG)
+        tk.Label(self.video_params, text="FPS a extraer:", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=0, column=0, sticky="w", pady=4)
+        make_entry(self.video_params, self.video_fps_var, width=6).grid(row=0, column=1, sticky="w", padx=(8,20))
+        tk.Label(self.video_params, text="(fotogramas por segundo a capturar del vídeo)",
+                bg=DARK_BG, fg="#777777", font=("Arial", 8)).grid(row=0, column=2, sticky="w")
+
+        tk.Label(self.video_params, text="Inicio (seg):", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=1, column=0, sticky="w", pady=4)
+        make_entry(self.video_params, self.video_start_var, width=6).grid(row=1, column=1, sticky="w", padx=(8,20))
+
+        tk.Label(self.video_params, text="Fin (seg, vacío = hasta el final):", bg=DARK_BG, fg=FG,
+                font=("Arial", 10)).grid(row=2, column=0, sticky="w", pady=4)
+        make_entry(self.video_params, self.video_end_var, width=6).grid(row=2, column=1, sticky="w", padx=(8,20))
 
         make_label(self, "Guardar GIF como", bold=True).pack(anchor="w", **pad)
         f2 = tk.Frame(self, bg=DARK_BG); f2.pack(fill="x", padx=20, pady=2)
@@ -335,7 +372,7 @@ class GifMakerTab(tk.Frame):
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=20, pady=10)
 
-        make_label(self, "Parámetros", bold=True).pack(anchor="w", **pad)
+        make_label(self, "Parámetros del GIF", bold=True).pack(anchor="w", **pad)
         params = tk.Frame(self, bg=DARK_BG); params.pack(fill="x", padx=20, pady=4)
 
         tk.Label(params, text="Ancho (px):", bg=DARK_BG, fg=FG, font=("Arial", 10)).grid(row=0, column=0, sticky="w", pady=6)
@@ -366,12 +403,35 @@ class GifMakerTab(tk.Frame):
                              relief="flat", cursor="hand2", activebackground="#3d7a3d")
         self.btn.pack(pady=(0, 20), ipadx=20, ipady=8)
 
-    def _pick_input(self):
+    def _on_source_change(self, *_):
+        is_video = self.source_mode.get() == "Archivo de vídeo"
+        if is_video:
+            self.folder_label.pack_forget()
+            self.f1.pack_forget()
+            self.video_label.pack(anchor="w", padx=20, pady=6)
+            self.v1.pack(fill="x", padx=20, pady=2)
+            self.video_params.pack(fill="x", padx=20, pady=(8,4))
+        else:
+            self.video_label.pack_forget()
+            self.v1.pack_forget()
+            self.video_params.pack_forget()
+            self.folder_label.pack(anchor="w", padx=20, pady=6)
+            self.f1.pack(fill="x", padx=20, pady=2)
+
+    def _pick_input_folder(self):
         folder = filedialog.askdirectory(title="Selecciona carpeta con las imágenes")
         if folder:
             self.input_folder.set(folder)
             if not self.output_path.get():
                 self.output_path.set(os.path.join(folder, "output.gif"))
+
+    def _pick_input_video(self):
+        path = filedialog.askopenfilename(title="Selecciona el archivo de vídeo",
+                                          filetypes=[("Vídeo", "*.mp4 *.mov *.avi *.mkv *.webm")])
+        if path:
+            self.input_video.set(path)
+            if not self.output_path.get():
+                self.output_path.set(os.path.splitext(path)[0] + ".gif")
 
     def _pick_output(self):
         path = filedialog.asksaveasfilename(title="Guardar GIF como", defaultextension=".gif",
@@ -383,7 +443,11 @@ class GifMakerTab(tk.Frame):
         return [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', s)]
 
     def _run(self):
-        if not self.input_folder.get():
+        is_video = self.source_mode.get() == "Archivo de vídeo"
+        if is_video and not self.input_video.get():
+            messagebox.showerror("Error", "Selecciona un archivo de vídeo.")
+            return
+        if not is_video and not self.input_folder.get():
             messagebox.showerror("Error", "Selecciona una carpeta con imágenes.")
             return
         if not self.output_path.get():
@@ -392,23 +456,53 @@ class GifMakerTab(tk.Frame):
         self.btn.config(state="disabled", text="Procesando...")
         threading.Thread(target=self._process, daemon=True).start()
 
+    def _extract_video_frames(self):
+        """Extrae frames de un vídeo usando OpenCV según el FPS objetivo y el rango elegido."""
+        import cv2
+
+        path = self.input_video.get()
+        cap = cv2.VideoCapture(path)
+        if not cap.isOpened():
+            raise RuntimeError("No se pudo abrir el vídeo. ¿Formato soportado?")
+
+        src_fps = cap.get(cv2.CAP_PROP_FPS) or 30
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        duration = total_frames / src_fps if src_fps else 0
+
+        target_fps = float(self.video_fps_var.get())
+        start_sec = float(self.video_start_var.get() or 0)
+        end_str = self.video_end_var.get().strip()
+        end_sec = float(end_str) if end_str else duration
+
+        log_write(self.log, f"🎥 Vídeo: {src_fps:.1f} fps origen, {duration:.1f}s de duración")
+        log_write(self.log, f"   Extrayendo de {start_sec:.1f}s a {end_sec:.1f}s a {target_fps} fps")
+
+        step = max(1, round(src_fps / target_fps))
+        start_frame = int(start_sec * src_fps)
+        end_frame = int(end_sec * src_fps)
+
+        frames = []
+        idx = 0
+        cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+        current = start_frame
+
+        while current < end_frame:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            if idx % step == 0:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frames.append(Image.fromarray(frame_rgb))
+            idx += 1
+            current += 1
+
+        cap.release()
+        log_write(self.log, f"   {len(frames)} frames extraídos")
+        return frames
+
     def _process(self):
-        src = self.input_folder.get()
+        is_video = self.source_mode.get() == "Archivo de vídeo"
         out = self.output_path.get()
-
-        files = [f for f in os.listdir(src) if f.lower().endswith((".png",".jpg",".jpeg",".webp"))]
-        files.sort(key=self._natural_key)
-
-        if not files:
-            log_write(self.log, "⚠️  No se encontraron imágenes en la carpeta.")
-            self.btn.config(state="normal", text="▶  Generar GIF")
-            return
-
-        log_write(self.log, f"📁 {len(files)} imágenes encontradas, en orden:")
-        for f in files[:10]:
-            log_write(self.log, f"   {f}")
-        if len(files) > 10:
-            log_write(self.log, f"   ... y {len(files)-10} más")
 
         try:
             width = int(self.width_var.get())
@@ -419,10 +513,40 @@ class GifMakerTab(tk.Frame):
             self.btn.config(state="normal", text="▶  Generar GIF")
             return
 
+        try:
+            if is_video:
+                raw_frames = self._extract_video_frames()
+            else:
+                src = self.input_folder.get()
+                files = [f for f in os.listdir(src) if f.lower().endswith((".png",".jpg",".jpeg",".webp"))]
+                files.sort(key=self._natural_key)
+                if not files:
+                    log_write(self.log, "⚠️  No se encontraron imágenes en la carpeta.")
+                    self.btn.config(state="normal", text="▶  Generar GIF")
+                    return
+                log_write(self.log, f"📁 {len(files)} imágenes encontradas, en orden:")
+                for f in files[:10]:
+                    log_write(self.log, f"   {f}")
+                if len(files) > 10:
+                    log_write(self.log, f"   ... y {len(files)-10} más")
+                raw_frames = [Image.open(os.path.join(src, f)) for f in files]
+        except ImportError:
+            log_write(self.log, "❌ Falta la librería 'opencv-python'. Instálala con:\n   pip install opencv-python")
+            self.btn.config(state="normal", text="▶  Generar GIF")
+            return
+        except Exception as e:
+            log_write(self.log, f"❌ Error leyendo el origen: {e}")
+            self.btn.config(state="normal", text="▶  Generar GIF")
+            return
+
+        if not raw_frames:
+            log_write(self.log, "⚠️  No se obtuvieron frames.")
+            self.btn.config(state="normal", text="▶  Generar GIF")
+            return
+
         frames = []
-        for fname in files:
-            path = os.path.join(src, fname)
-            img = Image.open(path).convert("RGBA")
+        for img in raw_frames:
+            img = img.convert("RGBA")
             ratio = width / img.width
             new_size = (width, int(img.height * ratio))
             img = img.resize(new_size, Image.LANCZOS)

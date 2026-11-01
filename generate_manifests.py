@@ -3,7 +3,7 @@ import json
 
 # Ruta a tu carpeta local de GitHub Pages
 # Cambia esto si tu repositorio está en otro lugar
-BASE_PATH = r"C:\Users\Inti\Documents\GitHub\Pages\Pages\images"
+BASE_PATH = r"C:\Users\Inti\Documents\GitHub\Pages\images"
 
 EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp'}
 

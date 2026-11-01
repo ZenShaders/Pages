@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZenShaders FAQ & License</title>
+<style>
+  html, body {
+    margin:0; padding:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #121212;
+    color: rgba(255,255,255,0.87);
+  }
+
+  .accordion {
+    background: #1e1e1e;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .accordion input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .accordion label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.87);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .accordion label:hover { background: rgba(255,255,255,0.04); }
+  .accordion label:active { background: rgba(255,255,255,0.16); }
+  .accordion input:focus-visible + label { background: rgba(255,255,255,0.12); }
+
+  .accordion label .icon {
+    font-size: 20px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.60);
+    transition: transform 0.2s ease;
+    line-height: 1;
+  }
+
+  .accordion input:checked + label .icon {
+    transform: rotate(45deg);
+  }
+
+  .accordion .content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .accordion input:checked ~ .content {
+    max-height: 2000px;
+  }
+
+  .content-inner {
+    padding: 8px 18px 20px;
+  }
+
+  a { color: rgba(255,255,255,0.87); font-weight: 700; }
+
+  .q { font-size:14px; font-weight:700; color:rgba(255,255,255,0.87); margin:0 0 6px; }
+  .a { font-size:14px; color:rgba(255,255,255,0.60); line-height:22px; margin:0 0 20px; }
+  .divider { border:none; border-top:1px solid #323232; margin:0 0 20px; }
+
+  .license-subtitle { font-size:12px; font-weight:500; color:rgba(255,255,255,0.60); margin:0 0 16px; letter-spacing:0.06em; text-transform:uppercase; }
+  .license-intro { font-size:14px; color:rgba(255,255,255,0.60); line-height:22px; margin:0 0 20px; }
+  .section-label { font-size:13px; font-weight:700; color:rgba(255,255,255,0.87); margin:0 0 10px; }
+  .bullet { font-size:14px; color:rgba(255,255,255,0.60); line-height:22px; margin:0 0 4px; }
+  .bullet:last-child { margin-bottom:0; }
+  .bullet strong { color:rgba(255,255,255,0.87); }
+  .spacer { margin-bottom:20px; }
+</style>
+</head>
+<body>
+
+  <!-- FAQ -->
+  <div class="accordion">
+    <input type="checkbox" id="faq">
+    <label for="faq">
+      FAQ
+      <span class="icon">+</span>
+    </label>
+    <div class="content">
+      <div class="content-inner">
+
+        <p class="q">Are these assets AI-generated?</p>
+        <p class="a">No. Every single asset in ZenShaders Library, including materials, textures, decals, sculpt brushes and generators, is created manually and procedurally in Substance Designer. No AI image generation tools are used at any stage of production. Everything you see is hand-built node by node.</p>
+
+        <hr class="divider">
+
+        <p class="q">Can I use ZenShaders assets to train AI models?</p>
+        <p class="a">No. The license explicitly prohibits using these assets to train, fine-tune or generate images with any AI or machine learning model. This applies to all formats included in the library.</p>
+
+        <hr class="divider">
+
+        <p class="q">Can I use these assets in commercial projects?</p>
+        <p class="a">Yes. The royalty-free license covers both personal and commercial use with no additional fees.</p>
+
+        <hr class="divider">
+
+        <p class="q">Do I need to credit ZenShaders?</p>
+        <p class="a">No credit is required, though it is always appreciated.</p>
+
+        <hr class="divider">
+
+        <p class="q">My download contains multiple .zip files. How do I install them?</p>
+        <p class="a" style="margin-bottom:0;">Some categories are split into several parts due to their size. Download all parts into the same folder without renaming them, then extract only the first file using 7-Zip. For a full step-by-step guide visit our <a href="https://zenshaders.gitbook.io/zenshaders-docs/" target="_blank" rel="noopener noreferrer">documentation</a>.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LICENSE -->
+  <div class="accordion">
+    <input type="checkbox" id="license">
+    <label for="license">
+      License
+      <span class="icon">+</span>
+    </label>
+    <div class="content">
+      <div class="content-inner">
+
+        <p class="license-subtitle">Royalty-Free Personal &amp; Commercial License</p>
+        <p class="license-intro">You are free to use these assets in personal and commercial projects including games, films, illustrations, product renders and client work, without paying royalties or crediting ZenShaders.</p>
+
+        <p class="section-label">You may:</p>
+        <p class="bullet">• Use the assets in unlimited personal and commercial projects</p>
+        <p class="bullet">• Modify, adapt and combine the assets for your projects</p>
+        <p class="bullet spacer">• Use the assets in work delivered to clients</p>
+
+        <p class="section-label">You may not:</p>
+        <p class="bullet">• Redistribute, resell or share the original asset files</p>
+        <p class="bullet">• Include the assets in any product or pack for resale</p>
+        <p class="bullet">• Use the assets to train, fine-tune or generate images with any AI or machine learning model, image generator, or similar technology. This includes but is not limited to Stable Diffusion, Midjourney, DALL·E, LoRA training, or any other generative AI system</p>
+        <p class="bullet">• Claim authorship of the original assets</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUIREMENTS -->
+  <div class="accordion">
+    <input type="checkbox" id="requirements">
+    <label for="requirements">
+      Requirements
+      <span class="icon">+</span>
+    </label>
+    <div class="content">
+      <div class="content-inner">
+
+        <p class="license-subtitle">Minimum compatible software version</p>
+        <p class="bullet">• ZBrush: <strong>ZBrush 2024</strong></p>
+        <p class="bullet">• Substance 3D Painter: <strong>10.0.0</strong></p>
+        <p class="bullet">• Blender: <strong>4.2</strong></p>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
